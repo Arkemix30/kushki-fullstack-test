@@ -31,5 +31,10 @@ export async function analyzeImage(file: File): Promise<AnalysisResult> {
         throw createAnalysisError(errorData.code || response.status, errorData.message);
     }
 
-    return createAnalysisResult(data);
+    try {
+        return createAnalysisResult(data);
+    } catch (err) {
+        console.error("Schema validation failed:", err);
+        throw createAnalysisError(500, "Received malformed data from the server.");
+    }
 }
