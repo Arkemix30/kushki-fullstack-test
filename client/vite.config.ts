@@ -13,6 +13,9 @@ export default defineConfig({
             },
         },
     },
+    preview: {
+        allowedHosts: true,
+    },
     // @ts-expect-error - Vitest types
     test: {
         globals: true,
