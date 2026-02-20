@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --color-accent: #14b8a6;
+  --color-accent-hover: #0d9488;
+  --color-accent-glow: rgba(20, 184, 166, 0.15);
+  --color-surface: #111827;
+  --color-surface-hover: #1f2937;
+  --color-border: #1e293b;
+  --color-border-accent: #0d9488;
+  --color-bg: #0a0f1a;
+  --color-text: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  --color-error: #ef4444;
+  --color-error-bg: rgba(239, 68, 68, 0.1);
+  --color-error-border: rgba(239, 68, 68, 0.3);
+  --color-bar-bg: #1e293b;
+
+  --shadow-glow: 0 0 20px rgba(20, 184, 166, 0.15);
+
+  --font-family-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply font-sans antialiased text-text bg-bg leading-relaxed;
+  }
+}
+
+/* Custom Uploader Component - Mixing BEM with Tailwind for complex logic */
+.uploader {
+  @apply relative cursor-pointer text-center transition-all duration-250 ease-in-out border-2 border-dashed border-border rounded-xl px-8 py-12;
+}
+
+.uploader:hover {
+  @apply border-accent bg-teal-500/15 shadow-glow;
+}
+
+.uploader--dragging {
+  @apply border-accent bg-teal-500/15 shadow-glow scale-[1.01];
+}
+
+.uploader--disabled {
+  @apply opacity-50 pointer-events-none;
+}
+
+/* Spinner and Animations */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes shakeIn {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-4px);
+  }
+
+  40% {
+    transform: translateX(4px);
+  }
+
+  60% {
+    transform: translateX(-2px);
+  }
+
+  80% {
+    transform: translateX(2px);
+  }
+}
