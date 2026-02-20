@@ -1,15 +1,22 @@
+import { z } from "zod";
+
 /**
- * Domain models — pure data structures, no framework deps.
+ * Zod schemas for runtime validation.
  */
+export const tagSchema = z.object({
+    label: z.string(),
+    confidence: z.number(),
+});
 
-export interface Tag {
-    label: string;
-    confidence: number;
-}
+export const analysisResultSchema = z.object({
+    tags: z.array(tagSchema),
+});
 
-export interface AnalysisResult {
-    tags: Tag[];
-}
+/**
+ * Derive types from schemas.
+ */
+export type Tag = z.infer<typeof tagSchema>;
+export type AnalysisResult = z.infer<typeof analysisResultSchema>;
 
 export interface AnalysisError {
     code: number;
@@ -17,21 +24,23 @@ export interface AnalysisError {
 }
 
 /**
- * Create a Tag object.
+ * Create a Tag object with rounding logic.
  */
 export function createTag(label: string, confidence: number): Tag {
-    return {
+    return tagSchema.parse({
         label,
         confidence: Math.round(confidence * 100) / 100,
-    };
+    });
 }
 
 /**
- * Create an AnalysisResult from raw API response.
+ * Create an AnalysisResult from raw API response using Zod validation.
  */
-export function createAnalysisResult(data: any): AnalysisResult {
-    const tags = (data.tags || []).map((t: any) => createTag(t.label, t.confidence));
-    return { tags };
+export function createAnalysisResult(data: unknown): AnalysisResult {
+    const validated = analysisResultSchema.parse(data);
+    return {
+        tags: validated.tags.map((t) => createTag(t.label, t.confidence)),
+    };
 }
 
 /**
