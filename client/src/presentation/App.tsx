@@ -1,9 +1,24 @@
 import { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useImageAnalysis } from "../application/useImageAnalysis";
 import ImageUploader from "./components/ImageUploader";
 import ImagePreview from "./components/ImagePreview";
 import TagList from "./components/TagList";
 import ErrorMessage from "./components/ErrorMessage";
+
+/**
+ * Shared animation variants for reuse and optimization
+ */
+const loadingVariants = {
+    initial: { opacity: 0, scale: 0.95 },
+    animate: { opacity: 1, scale: 1 },
+    exit: { opacity: 0, scale: 1.05 }
+} as const;
+
+const contentVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 }
+} as const;
 
 export default function App() {
     const [file, setFile] = useState<File | null>(null);
@@ -23,7 +38,7 @@ export default function App() {
     }, [reset]);
 
     return (
-        <div className="flex min-h-screen flex-col bg-[color:var(--color-bg)]">
+        <div className="flex min-h-screen flex-col bg-[color:var(--color-bg)] transition-colors duration-500">
             <header className="border-b border-[color:var(--color-border)] bg-linear-to-b from-teal-500/5 to-transparent px-6 py-8 text-center">
                 <div className="mx-auto max-w-xl">
                     <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-linear-to-br from-accent to-cyan-600 text-white shadow-[0_0_20px_var(--color-accent-glow)]">
@@ -58,33 +73,52 @@ export default function App() {
                 >
                     <ImageUploader onFileSelect={handleFileSelect} disabled={loading} />
 
-                    {loading && (
-                        <div className="flex flex-col items-center gap-4 py-8" id="loading-spinner" role="status">
-                            <div className="h-10 w-10 animate-spin rounded-full border-3 border-[color:var(--color-border)] border-t-accent" />
-                            <p className="animate-pulse text-sm text-[color:var(--color-text-secondary)]">
-                                Analyzing image…
-                            </p>
-                        </div>
-                    )}
+                    <AnimatePresence mode="wait">
+                        {loading ? (
+                            <motion.div
+                                key="loading"
+                                variants={loadingVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                className="flex flex-col items-center gap-4 py-8"
+                                id="loading-spinner"
+                                role="status"
+                            >
+                                <div className="h-10 w-10 animate-spin rounded-full border-3 border-[color:var(--color-border)] border-t-accent" />
+                                <p className="animate-pulse text-sm text-[color:var(--color-text-secondary)]">
+                                    Analyzing image…
+                                </p>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="content"
+                                variants={contentVariants}
+                                initial="initial"
+                                animate="animate"
+                                className="flex flex-col"
+                            >
+                                <ErrorMessage error={error} onDismiss={handleReset} />
 
-                    <ErrorMessage error={error} onDismiss={handleReset} />
+                                {file && (
+                                    <div className="mt-8 flex flex-col gap-8">
+                                        <ImagePreview file={file} />
+                                        <TagList tags={tags} />
+                                    </div>
+                                )}
 
-                    {file && !loading && (
-                        <div className="mt-8 flex flex-col gap-8">
-                            <ImagePreview file={file} />
-                            <TagList tags={tags} />
-                        </div>
-                    )}
-
-                    {(tags.length > 0 || error) && !loading && (
-                        <button
-                            onClick={handleReset}
-                            className="mt-8 w-full cursor-pointer rounded-lg border border-[color:var(--color-border)] bg-transparent px-6 py-2 text-sm font-medium text-[color:var(--color-text-secondary)] transition-all duration-200 hover:border-accent hover:bg-accent/10 hover:text-accent active:scale-[0.98]"
-                            id="reset-button"
-                        >
-                            Analyze another image
-                        </button>
-                    )}
+                                {(tags.length > 0 || error) && (
+                                    <button
+                                        onClick={handleReset}
+                                        className="mt-8 w-full cursor-pointer rounded-lg border border-[color:var(--color-border)] bg-transparent px-6 py-2 text-sm font-medium text-[color:var(--color-text-secondary)] transition-all duration-200 hover:border-accent hover:bg-accent/10 hover:text-accent active:scale-[0.98]"
+                                        id="reset-button"
+                                    >
+                                        Analyze another image
+                                    </button>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </section>
             </main>
 
