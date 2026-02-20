@@ -24,7 +24,7 @@ def create_analyze_blueprint(use_case: AnalyzeImageUseCase) -> Blueprint:
 
         try:
             result = use_case.execute(file_bytes, content_type)
-            return jsonify(result.to_dict()), 200
+            return jsonify(result.model_dump()), 200
         except InvalidFileError as e:
             return jsonify({"error": {"code": e.code, "message": e.message}}), e.code
 

@@ -1,24 +1,26 @@
 """Domain models — pure data structures, no external dependencies."""
 
-from dataclasses import dataclass
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
-@dataclass(frozen=True)
-class Tag:
+class Tag(BaseModel):
     """A single image tag with its confidence score."""
+
+    model_config = ConfigDict(frozen=True)
 
     label: str
     confidence: float
 
-    def to_dict(self) -> dict:
-        return {"label": self.label, "confidence": round(self.confidence, 2)}
+    @field_validator("confidence")
+    @classmethod
+    def round_confidence(cls, v: float) -> float:
+        """Round confidence to 2 decimal places."""
+        return round(v, 2)
 
 
-@dataclass(frozen=True)
-class AnalysisResult:
+class AnalysisResult(BaseModel):
     """The result of analyzing an image."""
 
-    tags: list[Tag]
+    model_config = ConfigDict(frozen=True)
 
-    def to_dict(self) -> dict:
-        return {"tags": [tag.to_dict() for tag in self.tags]}
+    tags: list[Tag]
