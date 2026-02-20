@@ -1,127 +1,128 @@
-# 🖼️ Image Analyzer — AI-Powered Image Tagging
+# 🖼️ Kushki Analyzer — AI-Powered Image Tagging
 
-Full-stack web application that analyzes images and returns descriptive tags using [Imagga](https://imagga.com) AI.
+**Kushki** es una aplicación web full-stack diseñada para analizar imágenes y generar etiquetas descriptivas automáticamente utilizando la API de inteligencia artificial de [Imagga](https://imagga.com).
 
-## Tech Stack
+## 🏗️ Decisiones de Arquitectura
 
-| Layer | Technology | Architecture |
-|-------|------------|-------------|
-| **Backend** | Python Flask | Hexagonal (Ports & Adapters) |
-| **Frontend** | React + Vite | Clean Architecture |
-| **AI Service** | Imagga API | External driven adapter |
-| **Package Manager** | uv (Python), npm (Node.js) | — |
+Este proyecto prioriza la mantenibilidad, escalabilidad y una experiencia de desarrollo moderna.
 
-## Architecture
-
-### Backend — Hexagonal Architecture
-```
-Flask HTTP Adapter → [Driving Port] → Domain Core → [Driven Port] → Imagga Adapter
-```
+### Backend — Arquitectura Hexagonal (Ports & Adapters)
+Hemos implementado una **Arquitectura Hexagonal** en el backend para:
+- **Desacoplamiento**: La lógica de negocio (`Domain Core`) es totalmente independiente del framework web (Flask) y del proveedor de IA (Imagga).
+- **Flexibilidad**: Podemos cambiar el proveedor de IA o el framework web simplemente creando un nuevo adapter, sin tocar la lógica central.
+- **Testabilidad**: Permite realizar pruebas unitarias del dominio sin dependencias externas mediante el uso de "Mocks" o "Fakes" en los puertos.
 
 ### Frontend — Clean Architecture
-```
-Presentation (Components) → Application (Hooks) → Domain (Models) → Infrastructure (API)
-```
+En el frontend, seguimos los principios de **Clean Architecture**:
+- **Separación de Capas**: Presentación (React), Aplicación (Hooks/Use Cases), Dominio (Modelos puros) e Infraestructura (API).
+- **Independencia del UI**: La lógica de análisis de imágenes no depende de cómo se visualiza, facilitando cambios en el diseño sin romper la funcionalidad.
 
-## Quick Start
+### Stack Tecnológico Moderno (2025)
+- **Tailwind CSS v4**: Migración a la versión más reciente que utiliza una configuración "CSS-first", eliminando la necesidad de archivos de configuración JS complejos y mejorando el rendimiento de compilación.
+- **uv + poethepoet**: Sustituimos `pip` por `uv` para una gestión de paquetes extremadamente rápida. Integramos `poethepoet` como task runner para unificar comandos (tests, lint, dev) bajo un mismo ecosistema.
+- **Docker + Vite Preview**: En lugar de configurar un servidor Nginx separado para producción, utilizamos el servidor de `preview` de Vite. Esto simplifica el despliegue manteniendo un entorno fiel al build final.
 
-### Prerequisites
+## 🛠️ Stack Tecnológico
+
+| Capa | Tecnología | Rol |
+|-------|------------|-------------|
+| **Backend** | Python Flask | API REST & Orquestación |
+| **Frontend** | React 19 + Vite | Interfaz de Usuario Reactiva |
+| **Estilos** | Tailwind CSS v4 | Diseño moderno y responsive |
+| **AI Service** | Imagga API | Motor de análisis de imágenes |
+| **Gestor de Tareas** | poethepoet | Automatización de flujos (Dev/Test) |
+| **Paquetes** | uv (Python) | Instalación y gestión de entorno |
+
+## 🚀 Inicio Rápido
+
+### Requisitos Previos
 - Python 3.12+
 - Node.js 18+
-- [uv](https://docs.astral.sh/uv/) (Python package manager)
-- [Imagga account](https://imagga.com) (free tier)
+- [uv](https://docs.astral.sh/uv/) instalado globalmente.
+- Cuenta en [Imagga](https://imagga.com) (Credenciales API).
 
-### 1. Clone & Setup
+### 1. Clonar y Configurar
 
 ```bash
 git clone <repo-url>
 cd kushki
 ```
 
-### 2. Backend
+### 2. Backend (Servidor)
 
 ```bash
 cd server
-
-# Copy env and add your Imagga credentials
-cp .env.example .env
-
-# Install dependencies and run
+cp .env.example .env # Configura tus credenciales de Imagga aquí
 uv sync
-uv run python run.py
+uv run poe dev
 ```
+El servidor estará disponible en `http://localhost:5000`.
 
-Server starts at `http://localhost:5000`
-
-### 3. Frontend
+### 3. Frontend (Cliente)
 
 ```bash
 cd client
 npm install
 npm run dev
 ```
+La aplicación se abrirá en `http://localhost:5173`.
 
-App opens at `http://localhost:5173` (auto-proxies API calls to Flask)
+## 🐳 Docker (Entorno Completo)
 
-### 4. Run Tests
+Hemos optimizado el `docker-compose.yml` para levantar todo el stack con un solo comando, incluyendo la configuración de red y variables de entorno.
 
 ```bash
-# Backend
-cd server && uv run python -m pytest tests/ -v
-
-# Frontend
-cd client && npx vitest run
+docker-compose up --build
 ```
 
-## API Endpoint
+- **Frontend**: `http://localhost:4173` (Vite Preview)
+- **Backend**: `http://localhost:5000`
+
+## 🧪 Pruebas y Calidad
+
+Utilizamos un sistema unificado de tareas:
+
+| Tarea | Comando (Backend) | Comando (Frontend) |
+|-------|-------------------|--------------------|
+| **Desarrollo** | `uv run poe dev` | `npm run dev` |
+| **Pruebas** | `uv run poe test` | `npm test` |
+| **Lint/Auditoría** | `uv run poe check` | `n/a` |
+
+## 🔌 Referencia de la API
 
 ### `POST /api/analyze`
+Sube una imagen para obtener etiquetas descriptivas.
 
-Upload an image for tag analysis.
+**Cuerpo (form-data):**
+- `image`: Archivo (JPEG/PNG, máx 5MB).
 
-**Request:** `multipart/form-data` with `image` field (JPEG or PNG, max 5MB)
-
-**Response (200):**
+**Respuesta Exitosa (200 OK):**
 ```json
 {
   "tags": [
-    { "label": "Dog", "confidence": 98.5 },
-    { "label": "Golden Retriever", "confidence": 95.2 }
+    { "label": "paisaje", "confidence": 99.2 },
+    { "label": "montaña", "confidence": 85.5 }
   ]
 }
 ```
 
-**Errors:**
-| Code | Meaning |
-|------|---------|
-| 400 | Invalid file type or missing image |
-| 413 | File too large (>5MB) |
-| 502 | External AI service failure |
-| 500 | Internal server error |
-
-## Project Structure
+## 📂 Estructura del Proyecto
 
 ```
 kushki/
-├── client/                    # React + Vite (Clean Architecture)
+├── client/                # React + Vite (Clean Architecture)
 │   ├── src/
-│   │   ├── presentation/      # Components (UI only)
-│   │   ├── application/       # Hooks / Use Cases
-│   │   ├── domain/            # Models (pure)
-│   │   ├── infrastructure/    # API calls
-│   │   └── styles/
-│   └── tests/
-├── server/                    # Python Flask (Hexagonal)
+│   │   ├── presentation/  # Componentes UI (React)
+│   │   ├── application/   # Logica de aplicacion (Hooks)
+│   │   ├── domain/        # Reglas de negocio y modelos
+│   │   └── infrastructure/# Adaptadores de API
+├── server/                # Flask (Hexagonal Architecture)
 │   ├── app/
-│   │   ├── domain/            # Models + Ports (pure)
-│   │   ├── application/       # Use Cases
-│   │   ├── adapters/          # HTTP + Imagga
-│   │   └── middleware/        # Error handlers
-│   └── tests/
-└── docs/
-    └── PRD.md
+│   │   ├── domain/        # Entidades y Puertos
+│   │   ├── application/   # Casos de Uso
+│   │   └── adapters/      # Implementaciones (HTTP, Imagga)
+└── docker-compose.yml     # Orquestación de contenedores
 ```
 
-## License
-
-MIT
+---
+Diseñado con ❤️ para la eficiencia y escalabilidad.
