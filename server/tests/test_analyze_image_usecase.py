@@ -84,4 +84,4 @@ class TestAnalyzeImageUseCase:
 
         result = use_case.execute(b"fake", "image/jpeg")
 
-        assert result.to_dict() == {"tags": [{"label": "Cat", "confidence": 0.95}]}
+        assert result.model_dump() == {"tags": [{"label": "Cat", "confidence": 0.95}]}
