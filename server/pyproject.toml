@@ -1,0 +1,25 @@
+[project]
+name = "image-analyzer"
+version = "0.1.0"
+description = "Intelligent image content analyzer backend — Flask + Imagga API"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.0",
+    "flask-cors>=5.0",
+    "gunicorn>=25.1.0",
+    "python-dotenv>=1.0",
+    "requests>=2.31",
+]
+
+[dependency-groups]
+dev = [
+    "poethepoet>=0.41.0",
+    "pytest>=8.0",
+]
+
+[tool.poe.tasks]
+dev = "flask --app app run --debug --host=0.0.0.0"
+prod = "gunicorn 'app:create_app()' --bind 0.0.0.0:5000"
+test = "pytest tests/ -v"
+lint = "python ../.agent/scripts/checklist.py . --skip-performance"
+check = "python ../.agent/scripts/checklist.py ."
