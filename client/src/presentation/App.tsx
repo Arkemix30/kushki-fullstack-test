@@ -6,6 +6,20 @@ import ImagePreview from "./components/ImagePreview";
 import TagList from "./components/TagList";
 import ErrorMessage from "./components/ErrorMessage";
 
+/**
+ * Shared animation variants for reuse and optimization
+ */
+const loadingVariants = {
+    initial: { opacity: 0, scale: 0.95 },
+    animate: { opacity: 1, scale: 1 },
+    exit: { opacity: 0, scale: 1.05 }
+} as const;
+
+const contentVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 }
+} as const;
+
 export default function App() {
     const [file, setFile] = useState<File | null>(null);
     const { analyze, tags, loading, error, reset } = useImageAnalysis();
@@ -24,7 +38,7 @@ export default function App() {
     }, [reset]);
 
     return (
-        <div className="flex min-h-screen flex-col bg-[color:var(--color-bg)]">
+        <div className="flex min-h-screen flex-col bg-[color:var(--color-bg)] transition-colors duration-500">
             <header className="border-b border-[color:var(--color-border)] bg-linear-to-b from-teal-500/5 to-transparent px-6 py-8 text-center">
                 <div className="mx-auto max-w-xl">
                     <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-linear-to-br from-accent to-cyan-600 text-white shadow-[0_0_20px_var(--color-accent-glow)]">
@@ -63,9 +77,10 @@ export default function App() {
                         {loading ? (
                             <motion.div
                                 key="loading"
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 1.05 }}
+                                variants={loadingVariants}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
                                 className="flex flex-col items-center gap-4 py-8"
                                 id="loading-spinner"
                                 role="status"
@@ -78,8 +93,9 @@ export default function App() {
                         ) : (
                             <motion.div
                                 key="content"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
+                                variants={contentVariants}
+                                initial="initial"
+                                animate="animate"
                                 className="flex flex-col"
                             >
                                 <ErrorMessage error={error} onDismiss={handleReset} />

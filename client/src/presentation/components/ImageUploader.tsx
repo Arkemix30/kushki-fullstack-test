@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, DragEvent, ChangeEvent } from "react";
+import { useState, useRef, useCallback, DragEvent, ChangeEvent, KeyboardEvent } from "react";
 import { motion } from "framer-motion";
 
 interface ImageUploaderProps {
@@ -6,17 +6,38 @@ interface ImageUploaderProps {
     disabled: boolean;
 }
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_TYPES = ["image/jpeg", "image/png"];
+
 /**
  * Drag-and-drop + file input component for image upload.
+ * Improved with file validation and accessibility support.
  */
 export default function ImageUploader({ onFileSelect, disabled }: ImageUploaderProps) {
     const [isDragging, setIsDragging] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    const validateAndSelect = useCallback((file: File | undefined) => {
+        if (!file) return;
+
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            alert("Please upload a valid image (JPEG or PNG).");
+            return;
+        }
+
+        if (file.size > MAX_FILE_SIZE) {
+            alert("File size exceeds 5MB limit.");
+            return;
+        }
+
+        onFileSelect(file);
+    }, [onFileSelect]);
+
     const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
         e.preventDefault();
+        if (disabled) return;
         setIsDragging(true);
-    }, []);
+    }, [disabled]);
 
     const handleDragLeave = useCallback((e: DragEvent<HTMLDivElement>) => {
         e.preventDefault();
@@ -26,24 +47,36 @@ export default function ImageUploader({ onFileSelect, disabled }: ImageUploaderP
     const handleDrop = useCallback(
         (e: DragEvent<HTMLDivElement>) => {
             e.preventDefault();
+            if (disabled) return;
             setIsDragging(false);
             const file = e.dataTransfer.files[0];
-            if (file) onFileSelect(file);
+            validateAndSelect(file);
         },
-        [onFileSelect]
+        [disabled, validateAndSelect]
     );
 
     const handleChange = useCallback(
         (e: ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
-            if (file) onFileSelect(file);
+            validateAndSelect(file);
+            // Reset input value so same file can be selected again if needed
+            e.target.value = "";
         },
-        [onFileSelect]
+        [validateAndSelect]
     );
 
     const handleClick = useCallback(() => {
+        if (disabled) return;
         inputRef.current?.click();
-    }, []);
+    }, [disabled]);
+
+    const handleKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
+        if (disabled) return;
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleClick();
+        }
+    }, [disabled, handleClick]);
 
     return (
         <motion.div
@@ -61,8 +94,9 @@ export default function ImageUploader({ onFileSelect, disabled }: ImageUploaderP
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={handleClick}
+            onKeyDown={handleKeyDown}
             role="button"
-            tabIndex={0}
+            tabIndex={disabled ? -1 : 0}
             aria-label="Upload image for analysis"
             id="image-uploader"
         >
